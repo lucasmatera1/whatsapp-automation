@@ -1,0 +1,163 @@
+### ============================================================
+### WhatsApp Business API - REST Client Test File
+### Use com a extensão REST Client (humao.rest-client)
+### ============================================================
+
+@baseUrl = http://localhost:3000
+@metaUrl = https://graph.facebook.com/v21.0
+@token = {{$dotenv %WHATSAPP_TOKEN}}
+@phoneNumberId = {{$dotenv %PHONE_NUMBER_ID}}
+@wabaId = {{$dotenv %WABA_ID}}
+@verifyToken = {{$dotenv %VERIFY_TOKEN}}
+
+### ============================================================
+### 1. ENDPOINTS LOCAIS (Seu Servidor)
+### ============================================================
+
+### Status do sistema + aquecimento
+GET {{baseUrl}}/api/status
+
+### Verificar promoção de fase de aquecimento
+GET {{baseUrl}}/api/warmup/check
+
+### Estatísticas gerais de campanha
+GET {{baseUrl}}/api/stats
+
+### Estatísticas por template específico
+GET {{baseUrl}}/api/stats?template=reativacao_cliente
+
+### Listar templates aprovados na Meta
+GET {{baseUrl}}/api/templates
+
+### -----------------------------------------------------------
+### Enviar template para contatos específicos
+POST {{baseUrl}}/api/send/template
+Content-Type: application/json
+
+{
+  "templateName": "confirmacao_pedido",
+  "category": "utility",
+  "contacts": [
+    {
+      "phone": "5511999999999",
+      "params": ["#12345", "199,90", "3 dias úteis", "https://exemplo.com/rastreio"]
+    }
+  ]
+}
+
+### -----------------------------------------------------------
+### Enviar por tag de contato
+POST {{baseUrl}}/api/send/by-tag
+Content-Type: application/json
+
+{
+  "tag": "vip",
+  "templateName": "promocao_geral",
+  "category": "marketing",
+  "params": ["Frete grátis acima de R$99", "domingo"]
+}
+
+### -----------------------------------------------------------
+### Reativação de inativos
+POST {{baseUrl}}/api/send/reactivation
+Content-Type: application/json
+
+{
+  "days": 30,
+  "templateName": "reativacao_cliente",
+  "params": ["20% de desconto em todos os produtos"]
+}
+
+### -----------------------------------------------------------
+### Importar contatos via CSV
+POST {{baseUrl}}/api/contacts/import
+Content-Type: application/json
+
+{
+  "filePath": "./contatos.csv"
+}
+
+### -----------------------------------------------------------
+### Listar templates locais (biblioteca)
+GET {{baseUrl}}/api/templates/local
+
+### -----------------------------------------------------------
+### Submeter template para aprovação na Meta
+POST {{baseUrl}}/api/templates/submit
+Content-Type: application/json
+
+{
+  "templateKey": "reativacao_cliente"
+}
+
+### -----------------------------------------------------------
+### Submeter TODOS os templates locais
+POST {{baseUrl}}/api/templates/submit-all
+
+### ============================================================
+### 2. CHAMADAS DIRETAS À META (para debug/teste manual)
+### ============================================================
+
+### Verificar Quality Rating do número
+GET {{metaUrl}}/{{phoneNumberId}}?fields=quality_rating,messaging_limit
+Authorization: Bearer {{token}}
+
+### Listar templates na conta WABA
+GET {{metaUrl}}/{{wabaId}}/message_templates?limit=20
+Authorization: Bearer {{token}}
+
+### Enviar template direto pela Meta API
+POST {{metaUrl}}/{{phoneNumberId}}/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "messaging_product": "whatsapp",
+  "to": "5511999999999",
+  "type": "template",
+  "template": {
+    "name": "confirmacao_pedido",
+    "language": { "code": "pt_BR" },
+    "components": [
+      {
+        "type": "body",
+        "parameters": [
+          { "type": "text", "text": "#12345" },
+          { "type": "text", "text": "199,90" },
+          { "type": "text", "text": "3 dias úteis" },
+          { "type": "text", "text": "https://exemplo.com/rastreio" }
+        ]
+      }
+    ]
+  }
+}
+
+### Enviar mensagem de texto (apenas dentro da janela 24h)
+POST {{metaUrl}}/{{phoneNumberId}}/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "messaging_product": "whatsapp",
+  "to": "5511999999999",
+  "type": "text",
+  "text": { "body": "Olá! Esta é uma mensagem de teste." }
+}
+
+### Marcar mensagem como lida
+POST {{metaUrl}}/{{phoneNumberId}}/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "messaging_product": "whatsapp",
+  "status": "read",
+  "message_id": "wamid.XXXXX"
+}
+
+### ============================================================
+### 3. WEBHOOK (simulação de verificação)
+### ============================================================
+
+### Simular verificação do webhook pela Meta
+GET {{baseUrl}}/webhook?hub.mode=subscribe&hub.verify_token={{verifyToken}}&hub.challenge=CHALLENGE_ACCEPTED
