@@ -1,3 +1,13 @@
+// Mock database to avoid native module dependency in tests
+jest.mock("../src/database", () => ({
+  __esModule: true,
+  default: {
+    prepare: () => ({ run: jest.fn(), get: jest.fn(), all: jest.fn() }),
+    exec: jest.fn(),
+    pragma: jest.fn(),
+  },
+}));
+
 import { validateAndCleanPhone } from "../src/contacts";
 
 describe("validateAndCleanPhone", () => {

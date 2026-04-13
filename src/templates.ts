@@ -169,6 +169,10 @@ export const TEMPLATE_LIBRARY: Record<string, TemplateDefinition> = {
         text: "Olá {{1}}, informamos que nosso horário de atendimento será {{2}}. Para dúvidas, responda esta mensagem. Obrigado!",
         example: { body_text: [["João", "das 9h às 18h de segunda a sexta"]] },
       },
+      {
+        type: "FOOTER",
+        text: "Responda PARAR para cancelar",
+      },
     ],
   },
 

@@ -88,6 +88,7 @@ export async function textToAudio(text: string, options?: TTSOptions): Promise<B
 export function prepareTextForTTS(text: string): string {
   return text
     // Remover emojis (TTS lê o nome unicode deles)
+    // eslint-disable-next-line no-misleading-character-class
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27FF}\u{FE00}-\u{FE0F}\u{200D}]/gu, "")
     // Limpar espaços extras
     .replace(/\s{2,}/g, " ")
